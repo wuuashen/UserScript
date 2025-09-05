@@ -6,7 +6,9 @@
 // @copyright   2020-04-14，Require fancybox
 // @license     MIT License; https://opensource.org/licenses/MIT
 // @include     https://wallhaven.cc/*
-// @version     0.0.3
+// @version     0.0.4
+// @downloadURL https://raw.githubusercontent.com/wuuashen/UserScript/refs/heads/master/wallhaven%20-%20image%20viewer/wallhaven%20-%20image%20viewer.js
+// @updateURL   https://raw.githubusercontent.com/wuuashen/UserScript/refs/heads/master/wallhaven%20-%20image%20viewer/wallhaven%20-%20image%20viewer.js
 // @grant       none
 // ==/UserScript==
 ;(function(){
@@ -67,6 +69,29 @@
                 ],
                 thumbs: {
                     autoStart: true
+                },
+                // 添加 afterShow 事件来覆盖下载按钮的行为
+                afterShow: function(instance, current) {
+                    const downloadBtn = instance.$refs.toolbar.find('.fancybox-button--download');
+                    downloadBtn.off('click').on('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const url = current.src;
+                        const filename = url.split('/').pop();
+
+                        fetch(url)
+                            .then(response => response.blob())
+                            .then(blob => {
+                                const link = document.createElement('a');
+                                link.href = URL.createObjectURL(blob);
+                                link.download = filename;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(link.href);
+                            });
+                    });
                 }
             });
         })
